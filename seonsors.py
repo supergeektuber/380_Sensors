@@ -60,4 +60,4 @@ try:
 except KeyboardInterrupt:
 		pass
 
-np.savetxt('volts.csv', value, '%1.6f', ',', '\n', 'Time (s), Static Pressure, Kinematic Pressure, Exit Pressure, Thrust'
+np.savetxt('volts.csv', value, '%1.6f', ',', '\n', 'Time (s), Static Pressure, Kinematic Pressure, Exit Pressure, Thrust')
