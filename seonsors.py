@@ -60,5 +60,5 @@ try:
 except KeyboardInterrupt:
 		pass
 
-print(value)
+#print(value)
 np.savetxt('volts.csv', value, '%1.6f', delimiter=',', header='Time (s), Static Pressure, Kinematic Pressure, Exit Pressure, Thrust')
