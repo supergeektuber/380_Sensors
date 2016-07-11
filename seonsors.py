@@ -30,7 +30,7 @@ adc2 = Adafruit_ADS1x15.ADS1015(address=0x49) #Exit pressure and Load cell
 # See table 3 in the ADS1015/ADS1115 datasheet for more info on gain.
 
 #Order of values in 'value' [time, static pressure, knematic pressure, exit pressure, thrust]
-value = np.array([0,0,0,0,0])
+value = np.array([[0,0,0,0,0]])
 
 #start time
 start=time.time()
@@ -53,11 +53,12 @@ try:
 		load = adc2.read_adc_difference(3, gain=2/3)*(1.024/(2**11-1))
 
 		#This line for testing
-		print(current, staticP, kinematicP, exitP, load)
+		#print(current, staticP, kinematicP, exitP, load)
 
-                value = value.append([current, staticP, kinematicP, exitP, load])
+                value = np.append(value, [[current, staticP, kinematicP, exitP, load]], axis=0)
     		
 except KeyboardInterrupt:
 		pass
 
-np.savetxt('volts.csv', value, '%1.6f', ',', '\n', 'Time (s), Static Pressure, Kinematic Pressure, Exit Pressure, Thrust')
+print(value)
+np.savetxt('volts.csv', value, '%1.6f', delimiter=',', header='Time (s), Static Pressure, Kinematic Pressure, Exit Pressure, Thrust')
