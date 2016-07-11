@@ -2,6 +2,7 @@
 # Author: Tony DiCola
 # License: Public Domain
 import time
+import numpy as np
 
 # Import the ADS1x15 module.
 import Adafruit_ADS1x15
@@ -11,8 +12,8 @@ import Adafruit_ADS1x15
 #adc = Adafruit_ADS1x15.ADS1115()
 
 # Or create an ADS1015 ADC (12-bit) instance.
-adc1 = Adafruit_ADS1x15.ADS1015(address=0x48)
-adc2 = Adafruit_ADS1x15.ADS1015(address=0x49)
+adc1 = Adafruit_ADS1x15.ADS1015(address=0x48) #static pressure and kinematic pressure
+adc2 = Adafruit_ADS1x15.ADS1015(address=0x49) #Exit pressure and Load cell
 
 # Note you can change the I2C address from its default (0x48), and/or the I2C
 # bus by passing in these optional parameters:
@@ -27,28 +28,36 @@ adc2 = Adafruit_ADS1x15.ADS1015(address=0x49)
 #  -   8 = +/-0.512V
 #  -  16 = +/-0.256V
 # See table 3 in the ADS1015/ADS1115 datasheet for more info on gain.
-GAIN = 4
-value = [0,0]
 
-print('Press Ctrl-C to quit...')
+#Order of values in 'value' [time, static pressure, knematic pressure, exit pressure, thrust]
+value = np.array([0,0,0,0,0])
 
+#start time
+start=time.time()
+
+print('Press \'Ctrl-C\' to when done')
+
+#pressing 'Ctrl-C' will exit the loop without exiting the program
 try:
 	while True:
 		# Read the difference between channel 0 and 1 (i.e. channel 0 minus channel 1).
 		# Note you can change the differential value to the following:
-		#  - 0 = Channel 0 minus channel 1
+		#  - 0 = Channel 0 minus channel 1 (static and exit pressures)
 		#  - 1 = Channel 0 minus channel 3
 		#  - 2 = Channel 1 minus channel 3
-		#  - 3 = Channel 2 minus channel 3
-		value[0] = adc1.read_adc_difference(0, gain=2/3)*(6.144/(2**11))
-		value[1] = adc2.read_adc_difference(0, gain=4)*(1.024/(2**11))
-		# Note you can also pass an optional data_rate parameter above, see
-		# simpletest.py and the read_adc function for more information.
-		# Value will be a signed 12 or 16 bit integer value (depending on the ADC
-		# precision, ADS1015 = 12-bit or ADS1115 = 16-bit).
-		print('PT: %1.3f Volts LC: %1.3f Volts' % (value[0],value[1]))
-		# Pause for half a second.
-    		time.sleep(0.5)
+		#  - 3 = Channel 2 minus channel 3 (kinematic pressure and Load cell)
+		current = time.time() - start
+		staticP = adc1.read_adc_difference(0, gain=2/3)*(6.144/(2**11-1))
+		kinematicP = adc1.read_adc_difference(3, gain=2/3)*(6.144/(2**11-1))
+		exitP = adc2.read_adc_difference(0, gain=2/3)*(6.144/(2**11-1))
+		load = adc2.read_adc_difference(3, gain=2/3)*(1.024/(2**11-1))
+
+		#This line for testing
+		print(current, staticP, kinematicP, exitP, load)
+
+                value = value.append([current, staticP, kinematicP, exitP, load])
+    		
 except KeyboardInterrupt:
 		pass
-print('\ndone')
+
+np.savetxt('volts.csv', value, '%1.6f', ',', '\n', 'Time (s), Static Pressure, Kinematic Pressure, Exit Pressure, Thrust'
